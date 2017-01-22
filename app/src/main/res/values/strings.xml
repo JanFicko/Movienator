@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Movienator</string>
+
+    <string name="error_message">No movies to show!</string>
 </resources>
