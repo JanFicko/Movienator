@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.gson.Gson;
@@ -20,10 +21,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     private static final String TAG = MovieAdapter.class.getSimpleName();
 
     private List<JsonElement> mMovieList;
-    final private ListItemClickListener mOnClickListener;
+    private final ListItemClickListener mOnClickListener;
 
     public interface ListItemClickListener {
-        void onListClick(int clickedItemIndex);
+        void onListItemClick(int clickedItemIndex);
     }
 
     public MovieAdapter(List<JsonElement> result, ListItemClickListener listener) {
@@ -37,6 +38,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
         View view = inflater.inflate(idLayout, parent, false);
+
         return new MovieAdapterViewHolder(view);
     }
 
@@ -47,7 +49,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
     @Override
     public int getItemCount() {
-        return mMovieList.size();
+        if (mMovieList == null) {
+            return 0;
+        } else {
+            return mMovieList.size();
+        }
     }
 
     public class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
@@ -56,7 +62,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
         public MovieAdapterViewHolder(View itemView) {
             super(itemView);
-
             mPoster = (SimpleDraweeView) itemView.findViewById(R.id.poster);
         }
 
@@ -69,9 +74,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
 
         @Override
         public void onClick(View v) {
-            int clickedPosition = getAdapterPosition();
-            mOnClickListener.onListClick(clickedPosition);
             Log.v(TAG, "CLICKED");
+            int clickedPosition = getAdapterPosition();
+            mOnClickListener.onListItemClick(clickedPosition);
         }
     }
 

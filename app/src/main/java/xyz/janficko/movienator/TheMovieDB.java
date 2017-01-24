@@ -19,8 +19,8 @@ public class TheMovieDB {
         return retrofit;
     }
 
-    public DiscoverInterface discoverInterface() {
-        return getRetrofit().create(DiscoverInterface.class);
+    public MoviesInterface discoverInterface() {
+        return getRetrofit().create(MoviesInterface.class);
     }
 
 }

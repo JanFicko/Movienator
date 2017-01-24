@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Movienator</string>
+    <string name="title_reset">Reset</string>
+    <string name="title_sort">Sort</string>
 
     <string name="error_message">No movies to show!</string>
 </resources>

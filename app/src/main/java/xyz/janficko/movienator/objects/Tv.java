@@ -7,9 +7,6 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.http.Query;
-import xyz.janficko.movienator.DiscoverInterface;
-
 public class Tv {
 
     @SerializedName("poster_path")
