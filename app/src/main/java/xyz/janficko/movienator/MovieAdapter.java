@@ -24,7 +24,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     private final ListItemClickListener mOnClickListener;
 
     public interface ListItemClickListener {
-        void onListItemClick(int clickedItemIndex);
+        void onListItemClick(int movieId);
     }
 
     public MovieAdapter(List<JsonElement> result, ListItemClickListener listener) {
@@ -59,24 +59,26 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     public class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
 
         private SimpleDraweeView mPoster;
+        private Gson gson = new Gson();
 
         public MovieAdapterViewHolder(View itemView) {
             super(itemView);
             mPoster = (SimpleDraweeView) itemView.findViewById(R.id.poster);
+            itemView.setOnClickListener(this);
         }
 
         void bind(int position) {
             String json = mMovieList.get(position).toString();
-            Gson gson = new Gson();
             Movie movie = gson.fromJson(json, Movie.class);
             mPoster.setImageURI("http://image.tmdb.org/t/p/w342/" + movie.getPosterPath());
         }
 
         @Override
         public void onClick(View v) {
-            Log.v(TAG, "CLICKED");
             int clickedPosition = getAdapterPosition();
-            mOnClickListener.onListItemClick(clickedPosition);
+            String json = mMovieList.get(clickedPosition).toString();
+            Movie movie = gson.fromJson(json, Movie.class);
+            mOnClickListener.onListItemClick(movie.getId());
         }
     }
 

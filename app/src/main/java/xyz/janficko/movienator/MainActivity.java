@@ -1,5 +1,6 @@
 package xyz.janficko.movienator;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -19,9 +20,13 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import xyz.janficko.movienator.enums.SortBy;
+import xyz.janficko.movienator.enums.SortMovie;
 import xyz.janficko.movienator.objects.Result;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
+
+import static xyz.janficko.movienator.enums.SortMovie.NOW_PLAYING;
+import static xyz.janficko.movienator.enums.SortMovie.POPULAR;
+import static xyz.janficko.movienator.enums.SortMovie.TOP_RATED;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.ListItemClickListener {
 
@@ -36,9 +41,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     private EndlessRecyclerViewScrollListener mScrollListener;
     private ProgressBar mLoadingBar;
     private List<JsonElement> mMovieList;
-    private Toast mToast;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
+    private SortMovie mSortMovie = POPULAR;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +70,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     private void populateMovieList(int page) {
         mLoadingBar.setVisibility(View.VISIBLE);
-
-        Call<Result> discoverMedia = mMoviesInterface.getPopular(API_KEY, SortBy.VOTE_AVERAGE_DESC, page);
-        discoverMedia.enqueue(new Callback<Result>() {
+        Call<Result> movieList = null;
+        switch (mSortMovie) {
+            case POPULAR:
+                movieList = mMoviesInterface.getPopular(API_KEY, page);
+                break;
+            case TOP_RATED:
+                movieList = mMoviesInterface.getTopRated(API_KEY, page);
+                break;
+            case NOW_PLAYING:
+                movieList = mMoviesInterface.getNowPlaying(API_KEY, page);
+                break;
+        }
+        movieList.enqueue(new Callback<Result>() {
             @Override
             public void onResponse(Call<Result> call, Response<Result> response) {
-
                 if (mMovieList == null) {
                     mMovieList = response.body().getResults();
                     mTotalPages = response.body().getTotalPages();
@@ -102,22 +116,54 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_sort:
+            case R.id.action_popular:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                } else {
+                    item.setChecked(true);
+                }
+                mMovieList.clear();
+                mMovieAdapter.notifyDataSetChanged();
+                mScrollListener.resetState();
+                mPageCounter = 1;
+                mSortMovie = POPULAR;
                 populateMovieList(mPageCounter);
-                break;
+                return true;
+            case R.id.action_top_rated:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                } else {
+                    item.setChecked(true);
+                }
+                mMovieList.clear();
+                mMovieAdapter.notifyDataSetChanged();
+                mScrollListener.resetState();
+                mPageCounter = 1;
+                mSortMovie = TOP_RATED;
+                populateMovieList(mPageCounter);
+                return true;
+            case R.id.action_now_playing:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                } else {
+                    item.setChecked(true);
+                }
+                mMovieList.clear();
+                mMovieAdapter.notifyDataSetChanged();
+                mScrollListener.resetState();
+                mPageCounter = 1;
+                mSortMovie = NOW_PLAYING;
+                populateMovieList(mPageCounter);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onListItemClick(int clickedItemIndex) {
-        if (mToast != null) {
-            mToast.cancel();
-        }
-
-        String toastMessage = "Item #" + clickedItemIndex + " clicked.";
-        Toast toast = Toast.makeText(this, toastMessage, Toast.LENGTH_LONG);
-
-        toast.show();
+    public void onListItemClick(int movieId) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieId));
+        startActivity(intent);
     }
 }
