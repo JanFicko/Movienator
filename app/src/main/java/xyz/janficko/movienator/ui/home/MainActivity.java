@@ -1,4 +1,4 @@
-package xyz.janficko.movienator;
+package xyz.janficko.movienator.ui.home;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -11,7 +11,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.google.gson.JsonElement;
 
@@ -20,8 +19,12 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import xyz.janficko.movienator.BuildConfig;
+import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.enums.SortMovie;
 import xyz.janficko.movienator.objects.Result;
+import xyz.janficko.movienator.ui.detail.DetailActivity;
+import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
 
 import static xyz.janficko.movienator.enums.SortMovie.NOW_PLAYING;

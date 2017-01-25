@@ -1,4 +1,4 @@
-package xyz.janficko.movienator;
+package xyz.janficko.movienator.ui.home;
 
 
 import retrofit2.Call;

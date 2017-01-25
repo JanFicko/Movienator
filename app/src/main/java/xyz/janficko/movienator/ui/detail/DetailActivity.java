@@ -1,4 +1,4 @@
-package xyz.janficko.movienator;
+package xyz.janficko.movienator.ui.detail;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +13,11 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import xyz.janficko.movienator.BuildConfig;
+import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.objects.Movie;
+import xyz.janficko.movienator.utilities.TheMovieDB;
+import xyz.janficko.movienator.ui.home.MoviesInterface;
 
 public class DetailActivity extends AppCompatActivity {
 

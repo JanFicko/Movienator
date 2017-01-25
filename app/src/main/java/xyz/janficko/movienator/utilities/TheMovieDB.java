@@ -1,7 +1,8 @@
-package xyz.janficko.movienator;
+package xyz.janficko.movienator.utilities;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import xyz.janficko.movienator.ui.home.MoviesInterface;
 
 public class TheMovieDB {
 

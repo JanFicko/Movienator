@@ -1,12 +1,10 @@
-package xyz.janficko.movienator;
+package xyz.janficko.movienator.ui.home;
 
-import android.util.Log;
 import android.view.View.OnClickListener;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.gson.Gson;
@@ -14,6 +12,7 @@ import com.google.gson.JsonElement;
 
 import java.util.List;
 
+import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.objects.Movie;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
