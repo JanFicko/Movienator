@@ -2,11 +2,11 @@ package xyz.janficko.movienator.utilities;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import xyz.janficko.movienator.ui.home.MoviesInterface;
+import xyz.janficko.movienator.ui.misc.MoviesInterface;
 
 public class TheMovieDB {
 
-    private String API_URL = "https://api.themoviedb.org/3/";
+    private static final String API_URL = "https://api.themoviedb.org/3/";
 
     private Retrofit retrofit = null;
 
@@ -20,7 +20,7 @@ public class TheMovieDB {
         return retrofit;
     }
 
-    public MoviesInterface discoverInterface() {
+    public MoviesInterface movieInterface() {
         return getRetrofit().create(MoviesInterface.class);
     }
 

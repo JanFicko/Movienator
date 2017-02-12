@@ -1,129 +1,157 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fresco="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_detail"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_horizontal_margin">
+    android:layout_height="match_parent">
 
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="2dp">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/tv_title"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorAccent"
-            android:textColor="@color/white"
-            android:padding="@dimen/activity_medium_margin"
-            android:textSize="@dimen/large_text"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true" />
-
-        <LinearLayout
-            android:id="@+id/layout_poster"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tv_title"
-            android:padding="@dimen/activity_horizontal_margin">
-
-            <com.facebook.drawee.view.SimpleDraweeView
-                android:id="@+id/iv_poster"
-                android:layout_width="154dp"
-                android:layout_height="231dp"
-                fresco:placeholderImage="@drawable/ic_no_image" />
-        </LinearLayout>
-
-        <RelativeLayout
-            android:id="@+id/layout_release_date"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tv_title"
-            android:layout_toRightOf="@id/layout_poster"
-            android:padding="@dimen/activity_horizontal_margin">
+            android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/tv_release_date_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/grey800"
-                android:text="@string/release_date" />
-
-            <TextView
-                android:id="@+id/tv_release_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_release_date_title"
-                android:textSize="@dimen/medium_text"
-                android:textColor="@color/black" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/layout_release_date"
-            android:layout_toRightOf="@id/layout_poster"
-            android:padding="@dimen/activity_horizontal_margin">
-
-            <TextView
-                android:id="@+id/tv_vote_average_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/grey800"
-                android:text="@string/vote_average" />
-
-            <TextView
-                android:id="@+id/tv_vote_average"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/tv_vote_average_title"
-                android:textSize="@dimen/medium_text"
-                android:textColor="@color/black" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/layout_poster"
-            android:padding="@dimen/activity_horizontal_margin">
-
-            <TextView
-                android:id="@+id/tv_synopsis_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/grey800"
-                android:text="@string/plot_synopsis" />
-
-            <ScrollView
+                android:id="@+id/tv_title"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scrollbars="vertical"
-                android:fillViewport="true"
-                android:layout_below="@id/tv_synopsis_title">
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:textColor="@color/white"
+                android:padding="@dimen/padding_medium"
+                android:textSize="@dimen/text_large"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                tools:text="@string/dummy_movie_title" />
+
+            <LinearLayout
+                android:id="@+id/layout_poster"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_title"
+                android:padding="@dimen/padding_medium">
+
+                <com.facebook.drawee.view.SimpleDraweeView
+                    android:id="@+id/iv_poster"
+                    android:layout_width="154dp"
+                    android:layout_height="231dp"
+                    fresco:placeholderImage="@drawable/ic_no_image" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_release_date"
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tv_title"
+                android:layout_toEndOf="@id/layout_poster"
+                android:layout_toRightOf="@id/layout_poster"
+                android:paddingTop="@dimen/padding_medium">
+
+                <TextView
+                    android:id="@+id/tv_release_date_title"
+                    android:text="@string/release_date"
+                    android:textSize="@dimen/text_small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tv_release_date"
+                    android:textSize="@dimen/text_medium"
+                    android:textColor="@color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/padding_small"
+                    tools:text="@string/dummy_date"/>
+
+                <TextView
+                    android:id="@+id/tv_vote_average_title"
+                    android:textSize="@dimen/text_small"
+                    android:text="@string/vote_average"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/tv_vote_average"
+                    android:textSize="@dimen/text_medium"
+                    android:textColor="@color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/padding_small"
+                    tools:text="@string/dummy_vote_average"/>
+
+                <TextView
+                    android:id="@+id/tv_video_title"
+                    android:visibility="invisible"
+                    android:textSize="@dimen/text_small"
+                    android:text="@string/trailer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_videos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/padding_small" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/rl_synopsis"
+                android:orientation="vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/layout_poster"
+                android:paddingStart="@dimen/padding_medium"
+                android:paddingLeft="@dimen/padding_medium"
+                android:paddingEnd="@dimen/padding_medium"
+                android:paddingRight="@dimen/padding_medium">
+
+                <TextView
+                    android:id="@+id/tv_synopsis_title"
+                    android:textSize="@dimen/text_small"
+                    android:text="@string/plot_synopsis"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/tv_synopsis"
+                    android:textColor="@color/black"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/padding_small"
+                    tools:text="@string/dummy_lorem_ipsum"/>
+
+                <TextView
+                    android:id="@+id/tv_reviews_title"
+                    android:text="@string/title_synopsis"
+                    android:textSize="@dimen/text_small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="invisible"/>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_reviews"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:textSize="@dimen/medium_text"
-                    android:textColor="@color/black" />
-            </ScrollView>
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:paddingBottom="@dimen/padding_small" />
+
+            </LinearLayout>
 
         </RelativeLayout>
 
-    </RelativeLayout>
-
+    </ScrollView>
 
     <ProgressBar
         android:id="@+id/pb_loading_indicator"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_gravity="center"
-        android:visibility="invisible" />
+        style="@style/LoadingBar" />
 
 </FrameLayout>

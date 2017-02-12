@@ -22,8 +22,9 @@ import retrofit2.Response;
 import xyz.janficko.movienator.BuildConfig;
 import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.enums.SortMovie;
-import xyz.janficko.movienator.objects.Result;
+import xyz.janficko.movienator.objects.MovieResult;
 import xyz.janficko.movienator.ui.detail.DetailActivity;
+import xyz.janficko.movienator.ui.misc.MoviesInterface;
 import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
 
@@ -34,13 +35,12 @@ import static xyz.janficko.movienator.enums.SortMovie.TOP_RATED;
 public class MainActivity extends AppCompatActivity implements MovieAdapter.ListItemClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String API_KEY = BuildConfig.API_KEY;
 
     private MovieAdapter mMovieAdapter;
     private TheMovieDB mTmd = new TheMovieDB();
-    private MoviesInterface mMoviesInterface = mTmd.discoverInterface();
+    private MoviesInterface mMoviesInterface = mTmd.movieInterface();
 
-    private RecyclerView mRecyclerView;
+    private RecyclerView mRecyclerViewMovies;
     private EndlessRecyclerViewScrollListener mScrollListener;
     private ProgressBar mLoadingBar;
     private List<JsonElement> mMovieList;
@@ -55,10 +55,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
         mLoadingBar = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.rv_movies);
+        mRecyclerViewMovies = (RecyclerView) findViewById(R.id.rv_movies);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(gridLayoutManager);
+        mRecyclerViewMovies.setHasFixedSize(true);
+        mRecyclerViewMovies.setLayoutManager(gridLayoutManager);
         mScrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
             public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
@@ -67,32 +67,35 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 }
             }
         };
-        mRecyclerView.addOnScrollListener(mScrollListener);
+        mRecyclerViewMovies.addOnScrollListener(mScrollListener);
         populateMovieList(mPageCounter);
     }
 
     private void populateMovieList(int page) {
         mLoadingBar.setVisibility(View.VISIBLE);
-        Call<Result> movieList = null;
+        Call<MovieResult> movieList = null;
         switch (mSortMovie) {
             case POPULAR:
-                movieList = mMoviesInterface.getPopular(API_KEY, page);
+                //movieList = mMoviesInterface.getPopular(API_KEY, page);
+                movieList = mMoviesInterface.getPopular(page);
                 break;
             case TOP_RATED:
-                movieList = mMoviesInterface.getTopRated(API_KEY, page);
+                //movieList = mMoviesInterface.getTopRated(API_KEY, page);
+                movieList = mMoviesInterface.getTopRated(page);
                 break;
             case NOW_PLAYING:
-                movieList = mMoviesInterface.getNowPlaying(API_KEY, page);
+                //movieList = mMoviesInterface.getNowPlaying(API_KEY, page);
+                movieList = mMoviesInterface.getNowPlaying(page);
                 break;
         }
-        movieList.enqueue(new Callback<Result>() {
+        movieList.enqueue(new Callback<MovieResult>() {
             @Override
-            public void onResponse(Call<Result> call, Response<Result> response) {
+            public void onResponse(Call<MovieResult> call, Response<MovieResult> response) {
                 if (mMovieList == null) {
                     mMovieList = response.body().getResults();
                     mTotalPages = response.body().getTotalPages();
                     mMovieAdapter = new MovieAdapter(mMovieList, MainActivity.this);
-                    mRecyclerView.setAdapter(mMovieAdapter);
+                    mRecyclerViewMovies.setAdapter(mMovieAdapter);
                 } else {
                     mMovieList.addAll(response.body().getResults());
                 }
@@ -103,8 +106,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             }
 
             @Override
-            public void onFailure(Call<Result> call, Throwable t) {
-                Log.e(TAG, "Couldn't fetch movies.");
+            public void onFailure(Call<MovieResult> call, Throwable t) {
+                Log.e(TAG, "Couldn't fetch movies: " + t.getMessage());
             }
         });
     }
