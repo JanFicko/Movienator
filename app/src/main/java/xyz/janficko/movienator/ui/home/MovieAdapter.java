@@ -14,19 +14,20 @@ import java.util.List;
 
 import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.objects.Movie;
+import xyz.janficko.movienator.objects.MovieResult;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapterViewHolder> {
 
     private static final String TAG = MovieAdapter.class.getSimpleName();
 
-    private List<JsonElement> mMovieList;
+    private List<Movie> mMovieList;
     private final ListItemClickListener mOnClickListener;
 
     public interface ListItemClickListener {
         void onListItemClick(int movieId);
     }
 
-    public MovieAdapter(List<JsonElement> result, ListItemClickListener listener) {
+    public MovieAdapter(List<Movie> result, ListItemClickListener listener) {
         mMovieList = result;
         mOnClickListener = listener;
     }
@@ -58,7 +59,6 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
     public class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
 
         private SimpleDraweeView mPoster;
-        private Gson gson = new Gson();
 
         public MovieAdapterViewHolder(View itemView) {
             super(itemView);
@@ -67,16 +67,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         }
 
         void bind(int position) {
-            String json = mMovieList.get(position).toString();
-            Movie movie = gson.fromJson(json, Movie.class);
+            /*String json = mMovieList.get(position).toString();
+            Movie movie = gson.fromJson(json, Movie.class);*/
+            Movie movie = mMovieList.get(position);
             mPoster.setImageURI("http://image.tmdb.org/t/p/w342/" + movie.getPosterPath());
         }
 
         @Override
         public void onClick(View v) {
             int clickedPosition = getAdapterPosition();
-            String json = mMovieList.get(clickedPosition).toString();
-            Movie movie = gson.fromJson(json, Movie.class);
+            /*String json = mMovieList.get(clickedPosition).toString();
+            Movie movie = gson.fromJson(json, Movie.class);*/
+            Movie movie = mMovieList.get(clickedPosition);
             mOnClickListener.onListItemClick(movie.getId());
         }
     }

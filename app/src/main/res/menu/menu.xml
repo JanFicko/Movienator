@@ -18,6 +18,11 @@
             android:title="@string/title_now_playing"
             android:orderInCategory="3"
             app:showAsAction="never" />
+        <item
+            android:id="@+id/action_favourites"
+            android:title="@string/title_favourites"
+            android:orderInCategory="4"
+            app:showAsAction="never" />
     </group>
 
 </menu>

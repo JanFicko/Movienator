@@ -4,7 +4,8 @@ public enum SortMovie {
 
     POPULAR("popular"),
     TOP_RATED("top_rated"),
-    NOW_PLAYING("now_playing");
+    NOW_PLAYING("now_playing"),
+    FAVOURITES("favourites");
 
     private final String sort;
 

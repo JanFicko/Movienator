@@ -1,10 +1,12 @@
 <resources>
     <string name="app_name">Movienator</string>
+    <string name="title_activity_detail">Movie details</string>
     <string name="title_reset">Reset</string>
     <string name="title_sort">Sort</string>
     <string name="title_popular">Most popular</string>
     <string name="title_top_rated">Top rated</string>
     <string name="title_now_playing">Now playing</string>
+    <string name="title_favourites">Favourites</string>
     <string name="title_synopsis">Reviews</string>
     <string name="title_review_author">Review by:</string>
 
@@ -12,11 +14,14 @@
     <string name="vote_average">Vote average:</string>
     <string name="plot_synopsis">Plot synopsis:</string>
     <string name="trailer">Trailers:</string>
+    <string name="favourite">Favourite:</string>
 
 
     <string name="error_message_no_movies">No movies to show!</string>
     <string name="error_message_site_not_supported">Sorry, we cannot play this video.</string>
 
+    <string name="content_authority">xyz.janficko.movienator</string>
+    <string name="content_favourite">Favourite or unfavourite movie</string>
 
     <!-- DUMMY TEXT -->
     <string name="dummy_trailer_title">Official Trailer #1</string>

@@ -1,9 +1,15 @@
 package xyz.janficko.movienator.ui.detail;
 
+import android.content.ContentValues;
+import android.support.v4.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,6 +20,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -27,6 +34,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import xyz.janficko.movienator.R;
+import xyz.janficko.movienator.data.FavouriteContract;
 import xyz.janficko.movienator.objects.Movie;
 import xyz.janficko.movienator.objects.Review;
 import xyz.janficko.movienator.objects.ReviewResult;
@@ -38,14 +46,16 @@ import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
 import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.ui.misc.MoviesInterface;
 
-public class DetailActivity extends AppCompatActivity implements VideoAdapter.VideoListItemClickListener, ReviewAdapter.ReviewListItemClickListener {
+public class DetailActivity extends AppCompatActivity implements VideoAdapter.VideoListItemClickListener, ReviewAdapter.ReviewListItemClickListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = DetailActivity.class.getSimpleName();
+    private static final int TASK_LOADER_ID = 0;
 
     private TheMovieDB mTmd = new TheMovieDB();
     private MoviesInterface mMoviesInterface = mTmd.movieInterface();
 
-
+    private String mediaId;
     private TextView mTitle;
     private SimpleDraweeView mPoster;
     private TextView mReleaseDateTitle;
@@ -57,6 +67,8 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private TextView mSynopsisTitle;
     private TextView mSynopsis;
     private TextView mReviewsTitle;
+    private TextView mFavouriteTitle;
+    private ImageButton mFavourite;
     private RecyclerView mRecyclerViewReviews;
     private ProgressBar mLoadingBar;
     private VideoAdapter mVideoAdapter;
@@ -67,6 +79,11 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private List<Review> mReviewList;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
+    private boolean isFavourited = false;
+
+    public static final String[] FAVOURITE_DETAIL_PROJECTION = {
+            FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,22 +96,32 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         mReleaseDate = (TextView) findViewById(R.id.tv_release_date);
         mVoteAverageTitle = (TextView) findViewById(R.id.tv_vote_average_title);
         mVoteAverage = (TextView) findViewById(R.id.tv_vote_average);
+        mFavouriteTitle = (TextView) findViewById(R.id.tv_favourite_title);
+        mFavourite = (ImageButton) findViewById(R.id.ib_favourite);
         mSynopsisTitle = (TextView) findViewById(R.id.tv_synopsis_title);
         mSynopsis = (TextView) findViewById(R.id.tv_synopsis);
         mLoadingBar = (ProgressBar) findViewById(R.id.pb_loading_indicator);
 
         Intent intent = getIntent();
         if (intent.hasExtra(Intent.EXTRA_TEXT)) {
-            populateMovie(intent.getStringExtra(Intent.EXTRA_TEXT));
+            mediaId = intent.getStringExtra(Intent.EXTRA_TEXT);
+            populateMovie();
         } else {
             finish();
         }
+        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 
-    private void populateMovie(final String movieId) {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
+    }
+
+    private void populateMovie() {
         mLoadingBar.setVisibility(View.VISIBLE);
 
-        Call<Movie> movie = mMoviesInterface.getDetails(movieId);
+        Call<Movie> movie = mMoviesInterface.getDetails(mediaId);
         movie.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(Call<Movie> call, Response<Movie> response) {
@@ -107,7 +134,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
                     mVoteAverage.setText(String.valueOf(movieDetail.getVoteAverage()));
                     mSynopsis.setText(movieDetail.getOverview());
 
-                    populateVideos(movieId);
+                    populateVideos();
 
                     mReviewsLayoutManager = new LinearLayoutManager(DetailActivity.this);
                     mRecyclerViewReviews = (RecyclerView) findViewById(R.id.rv_reviews);
@@ -115,13 +142,13 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
                         @Override
                         public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
                             if (mPageCounter <= mTotalPages) {
-                                populateReviews(movieId, mPageCounter);
+                                populateReviews(mPageCounter);
                             }
                         }
                     };
                     mRecyclerViewReviews.addOnScrollListener(mScrollListener);
 
-                    populateReviews(movieId, 1);
+                    populateReviews(mPageCounter);
                 }
 
                 mLoadingBar.setVisibility(View.INVISIBLE);
@@ -135,9 +162,9 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
     }
 
-    private void populateVideos(final String movieId){
+    private void populateVideos(){
 
-        Call<VideoResult> videos = mMoviesInterface.getVideos(movieId);
+        Call<VideoResult> videos = mMoviesInterface.getVideos(mediaId);
         videos.enqueue(new Callback<VideoResult>() {
             @Override
             public void onResponse(Call<VideoResult> call, Response<VideoResult> response) {
@@ -169,8 +196,8 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         });
     }
 
-    private void populateReviews(final String movieId, int page){
-        Call<ReviewResult> reviews = mMoviesInterface.getReviews(movieId, page);
+    private void populateReviews(int page){
+        Call<ReviewResult> reviews = mMoviesInterface.getReviews(mediaId, page);
         reviews.enqueue(new Callback<ReviewResult>() {
             @Override
             public void onResponse(Call<ReviewResult> call, Response<ReviewResult> response) {
@@ -189,9 +216,9 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
                         }
                     } else {
                         mReviewList.addAll(response.body().getReviews());
+                        mReviewAdapter.notifyDataSetChanged();
                     }
 
-                    mReviewAdapter.notifyDataSetChanged();
                     mPageCounter++;
             }
 
@@ -232,5 +259,119 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
         mPopupWindow = new PopupWindow(layout, width, height, true);
         mPopupWindow.showAtLocation(layout, Gravity.CENTER, 0, 0);
+    }
+
+    public void onFavouriteClicked(View view){
+        if(mediaId == null){
+            return;
+        }
+
+        Uri uri = null;
+
+        if(!isFavourited){
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID, mediaId);
+
+            try {
+                uri = getContentResolver().insert(
+                        FavouriteContract.FavouriteEntry.CONTENT_URI,
+                        contentValues
+                );
+            } catch (Exception e){
+                Log.e(TAG, "This media is already present in the database.");
+            }
+
+            if(uri != null){
+                setFavourite();
+                Log.v(TAG, uri.toString());
+            }
+        } else {
+            uri = FavouriteContract.FavouriteEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(mediaId).build();
+
+            int rowsDeleted = getContentResolver().delete(uri, null, null);
+
+            if(rowsDeleted != 0){
+                setUnfavourite();
+                Log.v(TAG, String.valueOf(rowsDeleted));
+            }
+        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, final Bundle args) {
+
+        return new AsyncTaskLoader<Cursor>(this) {
+
+            Cursor mFavouriteData = null;
+
+            @Override
+            protected void onStartLoading() {
+                if(mFavouriteData != null){
+                    deliverResult(mFavouriteData);
+                } else {
+                    forceLoad();
+                }
+            }
+
+            @Override
+            public Cursor loadInBackground() {
+                try {
+                    Uri uri = FavouriteContract.FavouriteEntry.CONTENT_URI;
+                    uri = uri.buildUpon().appendPath(mediaId).build();
+                    /*return getContentResolver().query(
+                            FavouriteContract.FavouriteEntry.CONTENT_URI,
+                            FAVOURITE_DETAIL_PROJECTION,
+                            FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID + " = ?",
+                            new String[] { mediaId },
+                            null
+                    );*/
+                    return getContentResolver().query(
+                            uri,
+                            null,
+                            null,
+                            null,
+                            null
+                    );
+                }catch (Exception e) {
+                    Log.e(TAG, "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            public void deliverResult(Cursor data) {
+                mFavouriteData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        //int idIndex = data.getColumnIndex(FavouriteContract.FavouriteEntry._ID);
+        //data.moveToFirst();
+        //Log.v(TAG, String.valueOf(data.getInt(idIndex)));
+        Log.v(TAG, String.valueOf(data.getCount()));
+        if(data.getCount() == 1){
+            setFavourite();
+        } else{
+            setUnfavourite();
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    private void setFavourite(){
+        isFavourited = true;
+        mFavourite.setBackground(ContextCompat.getDrawable(DetailActivity.this, R.drawable.ic_favourite));
+    }
+    private void setUnfavourite(){
+        isFavourited = false;
+        mFavourite.setBackground(ContextCompat.getDrawable(DetailActivity.this, R.drawable.ic_unfavourite));
     }
 }

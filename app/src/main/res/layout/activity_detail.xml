@@ -23,12 +23,8 @@
                 android:textColor="@color/white"
                 android:padding="@dimen/padding_medium"
                 android:textSize="@dimen/text_large"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
-                tools:text="@string/dummy_movie_title" />
+                tools:text="@string/dummy_movie_title"
+                android:layout_alignParentTop="true" />
 
             <LinearLayout
                 android:id="@+id/layout_poster"
@@ -49,10 +45,10 @@
                 android:orientation="vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/tv_title"
-                android:layout_toEndOf="@id/layout_poster"
-                android:layout_toRightOf="@id/layout_poster"
-                android:paddingTop="@dimen/padding_medium">
+                android:paddingTop="@dimen/padding_medium"
+                android:layout_below="@+id/tv_title"
+                android:layout_toRightOf="@+id/layout_poster"
+                android:layout_toEndOf="@+id/layout_poster">
 
                 <TextView
                     android:id="@+id/tv_release_date_title"
@@ -87,18 +83,20 @@
                     tools:text="@string/dummy_vote_average"/>
 
                 <TextView
-                    android:id="@+id/tv_video_title"
-                    android:visibility="invisible"
+                    android:id="@+id/tv_favourite_title"
                     android:textSize="@dimen/text_small"
-                    android:text="@string/trailer"
+                    android:text="@string/favourite"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_videos"
+                <ImageButton
+                    android:id="@+id/ib_favourite"
+                    android:background="@drawable/ic_unfavourite"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingBottom="@dimen/padding_small" />
+                    android:paddingBottom="@dimen/padding_small"
+                    android:contentDescription="@string/content_favourite"
+                    android:onClick="onFavouriteClicked"/>
 
             </LinearLayout>
 
@@ -127,6 +125,20 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="@dimen/padding_small"
                     tools:text="@string/dummy_lorem_ipsum"/>
+
+                <TextView
+                    android:id="@+id/tv_video_title"
+                    android:text="@string/trailer"
+                    android:visibility="invisible"
+                    android:textSize="@dimen/text_small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv_videos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingBottom="@dimen/padding_small" />
 
                 <TextView
                     android:id="@+id/tv_reviews_title"

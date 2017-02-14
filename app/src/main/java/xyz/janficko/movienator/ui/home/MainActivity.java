@@ -12,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.google.gson.JsonElement;
 
 import java.util.List;
 
@@ -22,6 +21,7 @@ import retrofit2.Response;
 import xyz.janficko.movienator.BuildConfig;
 import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.enums.SortMovie;
+import xyz.janficko.movienator.objects.Movie;
 import xyz.janficko.movienator.objects.MovieResult;
 import xyz.janficko.movienator.ui.detail.DetailActivity;
 import xyz.janficko.movienator.ui.misc.MoviesInterface;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     private RecyclerView mRecyclerViewMovies;
     private EndlessRecyclerViewScrollListener mScrollListener;
     private ProgressBar mLoadingBar;
-    private List<JsonElement> mMovieList;
+    private List<Movie> mMovieList;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
     private SortMovie mSortMovie = POPULAR;
@@ -76,41 +76,46 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         Call<MovieResult> movieList = null;
         switch (mSortMovie) {
             case POPULAR:
-                //movieList = mMoviesInterface.getPopular(API_KEY, page);
                 movieList = mMoviesInterface.getPopular(page);
                 break;
             case TOP_RATED:
-                //movieList = mMoviesInterface.getTopRated(API_KEY, page);
                 movieList = mMoviesInterface.getTopRated(page);
                 break;
             case NOW_PLAYING:
-                //movieList = mMoviesInterface.getNowPlaying(API_KEY, page);
                 movieList = mMoviesInterface.getNowPlaying(page);
                 break;
+            case FAVOURITES:
+                //movieList = mMoviesInterface.getNowPlaying(page);
+                break;
+            default:
+                throw new UnsupportedOperationException("Selected sorting option doesn't exist: " + mSortMovie);
         }
-        movieList.enqueue(new Callback<MovieResult>() {
-            @Override
-            public void onResponse(Call<MovieResult> call, Response<MovieResult> response) {
-                if (mMovieList == null) {
-                    mMovieList = response.body().getResults();
-                    mTotalPages = response.body().getTotalPages();
-                    mMovieAdapter = new MovieAdapter(mMovieList, MainActivity.this);
-                    mRecyclerViewMovies.setAdapter(mMovieAdapter);
-                } else {
-                    mMovieList.addAll(response.body().getResults());
+        if(movieList != null && mSortMovie != SortMovie.FAVOURITES){
+            movieList.enqueue(new Callback<MovieResult>() {
+                @Override
+                public void onResponse(Call<MovieResult> call, Response<MovieResult> response) {
+                    if (mMovieList == null) {
+                        mMovieList = response.body().getMovie();
+                        mTotalPages = response.body().getTotalPages();
+                        mMovieAdapter = new MovieAdapter(mMovieList, MainActivity.this);
+                        mRecyclerViewMovies.setAdapter(mMovieAdapter);
+                    } else {
+                        mMovieList.addAll(response.body().getMovie());
+                    }
+                    mMovieAdapter.notifyDataSetChanged();
+                    mPageCounter++;
+
+                    mLoadingBar.setVisibility(View.INVISIBLE);
                 }
-                mMovieAdapter.notifyDataSetChanged();
-                mPageCounter++;
 
-                mLoadingBar.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onFailure(Call<MovieResult> call, Throwable t) {
-                Log.e(TAG, "Couldn't fetch movies: " + t.getMessage());
-            }
-        });
+                @Override
+                public void onFailure(Call<MovieResult> call, Throwable t) {
+                    Log.e(TAG, "Couldn't fetch movies: " + t.getMessage());
+                }
+            });
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -149,6 +154,19 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 populateMovieList(mPageCounter);
                 return true;
             case R.id.action_now_playing:
+                if (item.isChecked()) {
+                    item.setChecked(false);
+                } else {
+                    item.setChecked(true);
+                }
+                mMovieList.clear();
+                mMovieAdapter.notifyDataSetChanged();
+                mScrollListener.resetState();
+                mPageCounter = 1;
+                mSortMovie = NOW_PLAYING;
+                populateMovieList(mPageCounter);
+                return true;
+            case R.id.action_favourites:
                 if (item.isChecked()) {
                     item.setChecked(false);
                 } else {
