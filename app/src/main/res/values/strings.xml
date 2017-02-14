@@ -17,7 +17,7 @@
     <string name="favourite">Favourite:</string>
 
 
-    <string name="error_message_no_movies">No movies to show!</string>
+    <string name="error_message_no_movies">No movies to show</string>
     <string name="error_message_site_not_supported">Sorry, we cannot play this video.</string>
 
     <string name="content_authority">xyz.janficko.movienator</string>

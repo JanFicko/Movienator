@@ -18,7 +18,8 @@ public class FavouriteDbHelper extends SQLiteOpenHelper {
         final String SQL_CREATE_FAVOURITE_TABLE =
                 "CREATE TABLE " + FavouriteContract.FavouriteEntry.TABLE_NAME + " (" +
                         FavouriteContract.FavouriteEntry._ID                +   " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID    +   " TEXT UNIQUE"                         +
+                        FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID    +   " TEXT UNIQUE,"                        +
+                        FavouriteContract.FavouriteEntry.COLUMN_POSTER_PATH +   " TEXT NOT NULL"                       +
                 ");";
         db.execSQL(SQL_CREATE_FAVOURITE_TABLE);
     }

@@ -40,8 +40,6 @@ import xyz.janficko.movienator.objects.Review;
 import xyz.janficko.movienator.objects.ReviewResult;
 import xyz.janficko.movienator.objects.Video;
 import xyz.janficko.movienator.objects.VideoResult;
-import xyz.janficko.movienator.ui.home.MainActivity;
-import xyz.janficko.movienator.ui.home.MovieAdapter;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
 import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.ui.misc.MoviesInterface;
@@ -50,12 +48,12 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = DetailActivity.class.getSimpleName();
-    private static final int TASK_LOADER_ID = 0;
 
     private TheMovieDB mTmd = new TheMovieDB();
     private MoviesInterface mMoviesInterface = mTmd.movieInterface();
 
-    private String mediaId;
+    private String mMediaId;
+    private String mPosterPath;
     private TextView mTitle;
     private SimpleDraweeView mPoster;
     private TextView mReleaseDateTitle;
@@ -79,7 +77,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private List<Review> mReviewList;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
-    private boolean isFavourited = false;
+    private boolean mIsFavourited = false;
 
     public static final String[] FAVOURITE_DETAIL_PROJECTION = {
             FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID
@@ -104,24 +102,24 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
         Intent intent = getIntent();
         if (intent.hasExtra(Intent.EXTRA_TEXT)) {
-            mediaId = intent.getStringExtra(Intent.EXTRA_TEXT);
+            mMediaId = intent.getStringExtra(Intent.EXTRA_TEXT);
             populateMovie();
         } else {
             finish();
         }
-        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+        getSupportLoaderManager().initLoader(0, null, this);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
+        getSupportLoaderManager().restartLoader(0, null, this);
     }
 
     private void populateMovie() {
         mLoadingBar.setVisibility(View.VISIBLE);
 
-        Call<Movie> movie = mMoviesInterface.getDetails(mediaId);
+        Call<Movie> movie = mMoviesInterface.getDetails(mMediaId);
         movie.enqueue(new Callback<Movie>() {
             @Override
             public void onResponse(Call<Movie> call, Response<Movie> response) {
@@ -129,7 +127,10 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
                 if (movieDetail != null) {
                     mTitle.setText(movieDetail.getTitle());
-                    mPoster.setImageURI("http://image.tmdb.org/t/p/w154/" + movieDetail.getPosterPath());
+
+                    mPosterPath = "http://image.tmdb.org/t/p/w154/" + movieDetail.getPosterPath();
+                    mPoster.setImageURI(mPosterPath);
+
                     mReleaseDate.setText(movieDetail.getReleaseDate());
                     mVoteAverage.setText(String.valueOf(movieDetail.getVoteAverage()));
                     mSynopsis.setText(movieDetail.getOverview());
@@ -164,7 +165,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
     private void populateVideos(){
 
-        Call<VideoResult> videos = mMoviesInterface.getVideos(mediaId);
+        Call<VideoResult> videos = mMoviesInterface.getVideos(mMediaId);
         videos.enqueue(new Callback<VideoResult>() {
             @Override
             public void onResponse(Call<VideoResult> call, Response<VideoResult> response) {
@@ -197,7 +198,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     }
 
     private void populateReviews(int page){
-        Call<ReviewResult> reviews = mMoviesInterface.getReviews(mediaId, page);
+        Call<ReviewResult> reviews = mMoviesInterface.getReviews(mMediaId, page);
         reviews.enqueue(new Callback<ReviewResult>() {
             @Override
             public void onResponse(Call<ReviewResult> call, Response<ReviewResult> response) {
@@ -262,15 +263,18 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     }
 
     public void onFavouriteClicked(View view){
-        if(mediaId == null){
+        if(mMediaId == null){
             return;
         }
 
         Uri uri = null;
 
-        if(!isFavourited){
+        if(!mIsFavourited){
             ContentValues contentValues = new ContentValues();
-            contentValues.put(FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID, mediaId);
+            contentValues.put(FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID, mMediaId);
+            if(mPosterPath != null){
+                contentValues.put(FavouriteContract.FavouriteEntry.COLUMN_POSTER_PATH, mPosterPath);
+            }
 
             try {
                 uri = getContentResolver().insert(
@@ -287,7 +291,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
             }
         } else {
             uri = FavouriteContract.FavouriteEntry.CONTENT_URI;
-            uri = uri.buildUpon().appendPath(mediaId).build();
+            uri = uri.buildUpon().appendPath(mMediaId).build();
 
             int rowsDeleted = getContentResolver().delete(uri, null, null);
 
@@ -318,12 +322,12 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
             public Cursor loadInBackground() {
                 try {
                     Uri uri = FavouriteContract.FavouriteEntry.CONTENT_URI;
-                    uri = uri.buildUpon().appendPath(mediaId).build();
+                    uri = uri.buildUpon().appendPath(mMediaId).build();
                     /*return getContentResolver().query(
                             FavouriteContract.FavouriteEntry.CONTENT_URI,
                             FAVOURITE_DETAIL_PROJECTION,
                             FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID + " = ?",
-                            new String[] { mediaId },
+                            new String[] { mMediaId },
                             null
                     );*/
                     return getContentResolver().query(
@@ -350,9 +354,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        //int idIndex = data.getColumnIndex(FavouriteContract.FavouriteEntry._ID);
-        //data.moveToFirst();
-        //Log.v(TAG, String.valueOf(data.getInt(idIndex)));
         Log.v(TAG, String.valueOf(data.getCount()));
         if(data.getCount() == 1){
             setFavourite();
@@ -367,11 +368,11 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     }
 
     private void setFavourite(){
-        isFavourited = true;
+        mIsFavourited = true;
         mFavourite.setBackground(ContextCompat.getDrawable(DetailActivity.this, R.drawable.ic_favourite));
     }
     private void setUnfavourite(){
-        isFavourited = false;
+        mIsFavourited = false;
         mFavourite.setBackground(ContextCompat.getDrawable(DetailActivity.this, R.drawable.ic_unfavourite));
     }
 }

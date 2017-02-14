@@ -17,6 +17,7 @@ public class FavouriteContract {
 
         public static final String TABLE_NAME = "favourite";
         public static final String COLUMN_MEDIA_ID = "media_id";
+        public static final String COLUMN_POSTER_PATH = "poster_path";
 
     }
 }

@@ -56,11 +56,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         }
     }
 
-    public class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
+    class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
 
         private SimpleDraweeView mPoster;
 
-        public MovieAdapterViewHolder(View itemView) {
+        MovieAdapterViewHolder(View itemView) {
             super(itemView);
             mPoster = (SimpleDraweeView) itemView.findViewById(R.id.poster);
             itemView.setOnClickListener(this);
