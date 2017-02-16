@@ -19,6 +19,31 @@
         android:layout_centerHorizontal="true"
         android:visibility="gone"/>
 
+    <LinearLayout
+        android:id="@+id/ll_no_internet_error"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+        android:textSize="@dimen/text_medium"
+        android:textColor="@color/black"
+        android:text="@string/error_message_no_internet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+        <Button
+            android:text="@string/action_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="retryConnection"/>
+
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/pb_loading_indicator"
         android:layout_centerVertical="true"

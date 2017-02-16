@@ -56,6 +56,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieAdapter
         }
     }
 
+    public void clear() {
+        int size = this.mMovieList.size();
+        this.mMovieList.clear();
+        notifyItemRangeRemoved(0, size);
+    }
+
     class MovieAdapterViewHolder extends RecyclerView.ViewHolder implements OnClickListener {
 
         private SimpleDraweeView mPoster;

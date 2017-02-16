@@ -10,6 +10,8 @@
     <string name="title_synopsis">Reviews</string>
     <string name="title_review_author">Review by:</string>
 
+    <string name="action_retry">Retry</string>
+
     <string name="release_date">Release date:</string>
     <string name="vote_average">Vote average:</string>
     <string name="plot_synopsis">Plot synopsis:</string>
@@ -18,7 +20,8 @@
 
 
     <string name="error_message_no_movies">No movies to show</string>
-    <string name="error_message_site_not_supported">Sorry, we cannot play this video.</string>
+    <string name="error_message_site_not_supported">Sorry, we cannot play this video</string>
+    <string name="error_message_no_internet">No internet connection</string>
 
     <string name="content_authority">xyz.janficko.movienator</string>
     <string name="content_favourite">Favourite or unfavourite movie</string>

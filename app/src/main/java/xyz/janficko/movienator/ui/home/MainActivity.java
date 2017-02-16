@@ -2,7 +2,6 @@ package xyz.janficko.movienator.ui.home;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -15,8 +14,10 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import java.util.List;
@@ -24,7 +25,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import xyz.janficko.movienator.BuildConfig;
 import xyz.janficko.movienator.R;
 import xyz.janficko.movienator.data.FavouriteContract;
 import xyz.janficko.movienator.enums.SortMovie;
@@ -32,6 +32,7 @@ import xyz.janficko.movienator.objects.Movie;
 import xyz.janficko.movienator.objects.MovieResult;
 import xyz.janficko.movienator.ui.detail.DetailActivity;
 import xyz.janficko.movienator.ui.misc.MoviesInterface;
+import xyz.janficko.movienator.utilities.NetworkStatusService;
 import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
 
@@ -45,9 +46,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final String SORT_STATE = "SORT";
 
     private TheMovieDB mTmd = new TheMovieDB();
     private MoviesInterface mMoviesInterface = mTmd.movieInterface();
+    private NetworkStatusService mNetworkStatusService = new NetworkStatusService(this);
 
     private MovieAdapter mMovieAdapter;
     private FavouriteMovieAdapter mFavouriteAdapter;
@@ -55,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     private EndlessRecyclerViewScrollListener mScrollListener;
     private ProgressBar mLoadingBar;
     private TextView mNoMoviesError;
+    private LinearLayout mNoInternetError;
     private List<Movie> mMovieList;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
@@ -65,17 +69,42 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mRecyclerViewMovies = (RecyclerView) findViewById(R.id.rv_movies);
+
         mLoadingBar = (ProgressBar) findViewById(R.id.pb_loading_indicator);
         mNoMoviesError = (TextView) findViewById(R.id.tv_no_movies_error);
+        mNoInternetError = (LinearLayout) findViewById(R.id.ll_no_internet_error);
 
-        setRecyclerView();
-        populateMovieList(mPageCounter);
+        if (savedInstanceState != null) {
+            mSortMovie = SortMovie.valueOf(savedInstanceState.getString(SORT_STATE));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(!mNetworkStatusService.isConnected()){
+            onNoInternet();
+        } else {
+            setRecyclerView();
+            populateMovieList(mPageCounter);
+        }
+
+        Log.v(TAG, mSortMovie.toString());
+
+        /*if(mSortMovie == FAVOURITES){
+            getSupportLoaderManager().restartLoader(0, null, MainActivity.this);
+        }*/
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(SORT_STATE, mSortMovie.toString());
+        super.onSaveInstanceState(outState);
     }
 
     private void setRecyclerView(){
-        mNoMoviesError.setVisibility(View.GONE);
-        mRecyclerViewMovies = (RecyclerView) findViewById(R.id.rv_movies);
-
         mRecyclerViewMovies.setHasFixedSize(true);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerViewMovies.setLayoutManager(gridLayoutManager);
@@ -91,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     }
 
     private void populateMovieList(int page) {
+        mNoMoviesError.setVisibility(View.INVISIBLE);
         mLoadingBar.setVisibility(View.VISIBLE);
         Call<MovieResult> movieList = null;
         switch (mSortMovie) {
@@ -109,7 +139,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             default:
                 throw new UnsupportedOperationException("Selected sorting option doesn't exist: " + mSortMovie);
         }
-        if(movieList != null && mSortMovie != SortMovie.FAVOURITES){
+        if(movieList != null && mSortMovie != FAVOURITES && mNetworkStatusService.isConnected()){
+            hideNoInternetError();
+
             movieList.enqueue(new Callback<MovieResult>() {
                 @Override
                 public void onResponse(Call<MovieResult> call, Response<MovieResult> response) {
@@ -132,9 +164,50 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     Log.e(TAG, "Couldn't fetch movies: " + t.getMessage());
                 }
             });
+        } else if(!mNetworkStatusService.isConnected() && mSortMovie != FAVOURITES){
+            mLoadingBar.setVisibility(View.INVISIBLE);
+            onNoInternet();
         }
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        switch(mSortMovie){
+            case POPULAR:
+                MenuItem popular = menu.findItem(R.id.action_popular);
+                if (popular.isChecked()) {
+                    popular.setChecked(false);
+                } else {
+                    popular.setChecked(true);
+                }
+                break;
+            case TOP_RATED:
+                MenuItem topRated = menu.findItem(R.id.action_top_rated);
+                if (topRated.isChecked()) {
+                    topRated.setChecked(false);
+                } else {
+                    topRated.setChecked(true);
+                }
+                break;
+            case NOW_PLAYING:
+                MenuItem nowPlaying = menu.findItem(R.id.action_now_playing);
+                if (nowPlaying.isChecked()) {
+                    nowPlaying.setChecked(false);
+                } else {
+                    nowPlaying.setChecked(true);
+                }
+                break;
+            case FAVOURITES:
+                MenuItem favourites = menu.findItem(R.id.action_favourites);
+                if (favourites.isChecked()) {
+                    favourites.setChecked(false);
+                } else {
+                    favourites.setChecked(true);
+                }
+                break;
+        }
+        return true;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -153,13 +226,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     item.setChecked(true);
                 }
                 setRecyclerView();
-                mRecyclerViewMovies.setAdapter(mMovieAdapter);
-                mMovieList.clear();
-                mMovieAdapter.notifyDataSetChanged();
-                mScrollListener.resetState();
-                mPageCounter = 1;
+                if(mMovieList != null){
+                    mMovieList.clear();
+                    mRecyclerViewMovies.setAdapter(mMovieAdapter);
+                    mMovieAdapter.notifyDataSetChanged();
+                    mScrollListener.resetState();
+                    mPageCounter = 1;
+                }
                 mSortMovie = POPULAR;
                 populateMovieList(mPageCounter);
+
                 return true;
             case R.id.action_top_rated:
                 if (item.isChecked()) {
@@ -168,12 +244,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     item.setChecked(true);
                 }
                 setRecyclerView();
-                mRecyclerViewMovies.addOnScrollListener(mScrollListener);
-                mRecyclerViewMovies.setAdapter(mMovieAdapter);
-                mMovieList.clear();
-                mMovieAdapter.notifyDataSetChanged();
-                mScrollListener.resetState();
-                mPageCounter = 1;
+                if(mMovieList != null){
+                    mMovieList.clear();
+                    mRecyclerViewMovies.setAdapter(mMovieAdapter);
+                    mMovieAdapter.notifyDataSetChanged();
+                    mScrollListener.resetState();
+                    mPageCounter = 1;
+                }
                 mSortMovie = TOP_RATED;
                 populateMovieList(mPageCounter);
                 return true;
@@ -184,12 +261,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     item.setChecked(true);
                 }
                 setRecyclerView();
-                mRecyclerViewMovies.addOnScrollListener(mScrollListener);
-                mRecyclerViewMovies.setAdapter(mMovieAdapter);
-                mMovieList.clear();
-                mMovieAdapter.notifyDataSetChanged();
-                mScrollListener.resetState();
-                mPageCounter = 1;
+                if(mMovieList != null){
+                    mMovieList.clear();
+                    mRecyclerViewMovies.setAdapter(mMovieAdapter);
+                    mMovieAdapter.notifyDataSetChanged();
+                    mScrollListener.resetState();
+                    mPageCounter = 1;
+                }
                 mSortMovie = NOW_PLAYING;
                 populateMovieList(mPageCounter);
                 return true;
@@ -199,14 +277,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 } else {
                     item.setChecked(true);
                 }
-                mMovieList.clear();
-                mMovieAdapter.notifyDataSetChanged();
-                mScrollListener.resetState();
-                mPageCounter = 1;
+                if(mMovieList != null) {
+                    mMovieList.clear();
+                    mMovieAdapter.notifyDataSetChanged();
+                    mScrollListener.resetState();
+                    mPageCounter = 1;
+                }
 
-                mRecyclerViewMovies = null;
-                mRecyclerViewMovies = (RecyclerView) findViewById(R.id.rv_movies);
-                mRecyclerViewMovies.setHasFixedSize(true);
                 mRecyclerViewMovies.setLayoutManager(new GridLayoutManager(this, 2));
                 mSortMovie = FAVOURITES;
                 populateMovieList(mPageCounter);
@@ -218,24 +295,25 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     @Override
     public void onListItemClick(int movieId) {
-        Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieId));
-        startActivity(intent);
+        if(mNetworkStatusService.isConnected()){
+            Intent intent = new Intent(this, DetailActivity.class);
+            intent.putExtra(Intent.EXTRA_TEXT, String.valueOf(movieId));
+            startActivity(intent);
+        } else {
+            Toast.makeText(
+                    this,
+                    getResources().getString(R.string.error_message_no_internet), Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new AsyncTaskLoader<Cursor>(this) {
 
-            Cursor mFavouriteData = null;
-
             @Override
             protected void onStartLoading() {
-                if(mFavouriteData != null){
-                    deliverResult(mFavouriteData);
-                } else {
-                    forceLoad();
-                }
+                forceLoad();
             }
 
             @Override
@@ -254,34 +332,43 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     return null;
                 }
             }
-
-            @Override
-            public void deliverResult(Cursor data) {
-                mFavouriteData = data;
-                super.deliverResult(data);
-            }
         };
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-        if(data.getCount() != 0){
+        mLoadingBar.setVisibility(View.INVISIBLE);
+        hideNoInternetError();
+        if(data.getCount() != 0 && mSortMovie == FAVOURITES){
             mFavouriteAdapter = new FavouriteMovieAdapter(data, this);
             mRecyclerViewMovies.setAdapter(mFavouriteAdapter);
-            mFavouriteAdapter.notifyDataSetChanged();
-        } else {
+        } else if (data.getCount() == 0 && mSortMovie == FAVOURITES) {
             mNoMoviesError.setVisibility(View.VISIBLE);
         }
-
-
-        mLoadingBar.setVisibility(View.INVISIBLE);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
 
+    public void retryConnection(View view){
+        if(mNetworkStatusService.isConnected()){
+            setRecyclerView();
+            populateMovieList(mPageCounter);
 
+            hideNoInternetError();
+        }
+    }
+
+    private void hideNoInternetError(){
+        mNoInternetError.setVisibility(LinearLayout.INVISIBLE);
+    }
+
+    private void onNoInternet(){
+        mNoInternetError.setVisibility(LinearLayout.VISIBLE);
+        if(mMovieAdapter != null){
+            mMovieAdapter.clear();
+        }
     }
 
 }

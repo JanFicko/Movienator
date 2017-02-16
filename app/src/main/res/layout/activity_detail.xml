@@ -35,8 +35,8 @@
 
                 <com.facebook.drawee.view.SimpleDraweeView
                     android:id="@+id/iv_poster"
-                    android:layout_width="154dp"
-                    android:layout_height="231dp"
+                    android:layout_width="@dimen/image_width_portrait"
+                    android:layout_height="@dimen/image_height_portrait"
                     fresco:placeholderImage="@drawable/ic_no_image" />
             </LinearLayout>
 

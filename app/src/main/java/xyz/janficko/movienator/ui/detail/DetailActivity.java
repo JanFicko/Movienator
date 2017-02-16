@@ -41,6 +41,7 @@ import xyz.janficko.movienator.objects.ReviewResult;
 import xyz.janficko.movienator.objects.Video;
 import xyz.janficko.movienator.objects.VideoResult;
 import xyz.janficko.movienator.utilities.EndlessRecyclerViewScrollListener;
+import xyz.janficko.movienator.utilities.NetworkStatusService;
 import xyz.janficko.movienator.utilities.TheMovieDB;
 import xyz.janficko.movienator.ui.misc.MoviesInterface;
 
@@ -51,6 +52,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
     private TheMovieDB mTmd = new TheMovieDB();
     private MoviesInterface mMoviesInterface = mTmd.movieInterface();
+    private NetworkStatusService networkStatusService = new NetworkStatusService(this);
 
     private String mMediaId;
     private String mPosterPath;
@@ -79,10 +81,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private int mTotalPages = 0;
     private boolean mIsFavourited = false;
 
-    public static final String[] FAVOURITE_DETAIL_PROJECTION = {
-            FavouriteContract.FavouriteEntry.COLUMN_MEDIA_ID
-    };
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,7 +97,6 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
         mSynopsisTitle = (TextView) findViewById(R.id.tv_synopsis_title);
         mSynopsis = (TextView) findViewById(R.id.tv_synopsis);
         mLoadingBar = (ProgressBar) findViewById(R.id.pb_loading_indicator);
-
         Intent intent = getIntent();
         if (intent.hasExtra(Intent.EXTRA_TEXT)) {
             mMediaId = intent.getStringExtra(Intent.EXTRA_TEXT);
@@ -113,6 +110,11 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     @Override
     protected void onResume() {
         super.onResume();
+
+        if(!networkStatusService.isConnected()){
+            finish();
+        }
+
         getSupportLoaderManager().restartLoader(0, null, this);
     }
 
@@ -128,7 +130,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
                 if (movieDetail != null) {
                     mTitle.setText(movieDetail.getTitle());
 
-                    mPosterPath = "http://image.tmdb.org/t/p/w154/" + movieDetail.getPosterPath();
+                    mPosterPath = "http://image.tmdb.org/t/p/w185/" + movieDetail.getPosterPath();
                     mPoster.setImageURI(mPosterPath);
 
                     mReleaseDate.setText(movieDetail.getReleaseDate());
