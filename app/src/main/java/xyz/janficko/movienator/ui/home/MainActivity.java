@@ -344,6 +344,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             mRecyclerViewMovies.setAdapter(mFavouriteAdapter);
         } else if (data.getCount() == 0 && mSortMovie == FAVOURITES) {
             mNoMoviesError.setVisibility(View.VISIBLE);
+        } else if(!mNetworkStatusService.isConnected()){
+            onNoInternet();
         }
     }
 
