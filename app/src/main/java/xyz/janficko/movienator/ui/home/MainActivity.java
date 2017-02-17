@@ -1,6 +1,8 @@
 package xyz.janficko.movienator.ui.home;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -9,10 +11,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Surface;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -106,7 +110,46 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     private void setRecyclerView(){
         mRecyclerViewMovies.setHasFixedSize(true);
+
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        int height = displaymetrics.heightPixels;
+        int width = displaymetrics.widthPixels;
+
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
+        if(width > 600){
+            gridLayoutManager = new GridLayoutManager(this, 3);
+            if(getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
+                gridLayoutManager = new GridLayoutManager(this, 4);
+            }
+            Log.v(TAG, "RES JE" + String.valueOf(getScreenOrientation()));
+        }
+
+       /* GridLayoutManager gridLayoutManager = null;
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            mRecyclerViewMovies.setLayoutManager(new GridLayoutManager(this, 4));
+            mScrollListener = new EndlessRecyclerViewScrollListener(new GridLayoutManager(this, 5)) {
+                @Override
+                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                    if (mPageCounter <= mTotalPages) {
+                        populateMovieList(mPageCounter);
+                    }
+                }
+            };
+        }
+        else{
+            mRecyclerViewMovies.setLayoutManager(new GridLayoutManager(this, 3));
+            mScrollListener = new EndlessRecyclerViewScrollListener(new GridLayoutManager(this, 3)) {
+                @Override
+                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                    if (mPageCounter <= mTotalPages) {
+                        populateMovieList(mPageCounter);
+                    }
+                }
+            };
+        }*/
+
+        //GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
         mRecyclerViewMovies.setLayoutManager(gridLayoutManager);
         mScrollListener = new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
@@ -371,6 +414,69 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         if(mMovieAdapter != null){
             mMovieAdapter.clear();
         }
+    }
+
+    private int getScreenOrientation() {
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        int width = dm.widthPixels;
+        int height = dm.heightPixels;
+        int orientation;
+        // if the device's natural orientation is portrait:
+        if ((rotation == Surface.ROTATION_0
+                || rotation == Surface.ROTATION_180) && height > width ||
+                (rotation == Surface.ROTATION_90
+                        || rotation == Surface.ROTATION_270) && width > height) {
+            switch(rotation) {
+                case Surface.ROTATION_0:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+                case Surface.ROTATION_90:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_180:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                    break;
+                case Surface.ROTATION_270:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                    break;
+                default:
+                    Log.e(TAG, "Unknown screen orientation. Defaulting to " +
+                            "portrait.");
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+            }
+        }
+        // if the device's natural orientation is landscape or if the device
+        // is square:
+        else {
+            switch(rotation) {
+                case Surface.ROTATION_0:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_90:
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+                    break;
+                case Surface.ROTATION_180:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
+                    break;
+                case Surface.ROTATION_270:
+                    orientation =
+                            ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
+                    break;
+                default:
+                    Log.e(TAG, "Unknown screen orientation. Defaulting to " +
+                            "landscape.");
+                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+                    break;
+            }
+        }
+
+        return orientation;
     }
 
 }
