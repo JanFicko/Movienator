@@ -33,11 +33,10 @@
                 android:layout_below="@id/tv_title"
                 android:padding="@dimen/padding_medium">
 
-                <com.facebook.drawee.view.SimpleDraweeView
+                <ImageView
                     android:id="@+id/iv_poster"
-                    android:layout_width="@dimen/image_width_portrait"
-                    android:layout_height="@dimen/image_height_portrait"
-                    fresco:placeholderImage="@drawable/ic_no_image" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
 
             <LinearLayout

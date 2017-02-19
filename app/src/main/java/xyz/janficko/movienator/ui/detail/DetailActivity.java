@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -21,12 +22,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.facebook.drawee.view.SimpleDraweeView;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -57,7 +59,7 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private String mMediaId;
     private String mPosterPath;
     private TextView mTitle;
-    private SimpleDraweeView mPoster;
+    private ImageView mPoster;
     private TextView mReleaseDateTitle;
     private TextView mReleaseDate;
     private TextView mVoteAverageTitle;
@@ -88,7 +90,18 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
 
         mTitle = (TextView) findViewById(R.id.tv_title);
         mReleaseDateTitle = (TextView) findViewById(R.id.tv_release_date_title);
-        mPoster = (SimpleDraweeView) findViewById(R.id.iv_poster);
+        mPoster = (ImageView) findViewById(R.id.iv_poster);
+
+        int screenWidth = getScreenWidth();
+        final float scale = getResources().getDisplayMetrics().density;
+
+        ViewGroup.LayoutParams params = mPoster.getLayoutParams();
+
+        params.width = (int) (((screenWidth + 10) / 2) * scale + 0.5f);
+        params.height = (int) (((((screenWidth + 10) / 2) * 15) / 10) * scale + 0.5f);
+
+        mPoster.setLayoutParams(params);
+
         mReleaseDate = (TextView) findViewById(R.id.tv_release_date);
         mVoteAverageTitle = (TextView) findViewById(R.id.tv_vote_average_title);
         mVoteAverage = (TextView) findViewById(R.id.tv_vote_average);
@@ -131,7 +144,10 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
                     mTitle.setText(movieDetail.getTitle());
 
                     mPosterPath = "http://image.tmdb.org/t/p/w185/" + movieDetail.getPosterPath();
-                    mPoster.setImageURI(mPosterPath);
+
+                    Picasso.with(DetailActivity.this)
+                            .load(mPosterPath)
+                            .into(mPoster);
 
                     mReleaseDate.setText(movieDetail.getReleaseDate());
                     mVoteAverage.setText(String.valueOf(movieDetail.getVoteAverage()));
@@ -376,5 +392,14 @@ public class DetailActivity extends AppCompatActivity implements VideoAdapter.Vi
     private void setUnfavourite(){
         mIsFavourited = false;
         mFavourite.setBackground(ContextCompat.getDrawable(DetailActivity.this, R.drawable.ic_unfavourite));
+    }
+
+    private int getScreenWidth(){
+        Display display = getWindowManager().getDefaultDisplay();
+        DisplayMetrics outMetrics = new DisplayMetrics ();
+        display.getMetrics(outMetrics);
+
+        float density = getResources().getDisplayMetrics().density;
+        return (int)(outMetrics.widthPixels / density);
     }
 }

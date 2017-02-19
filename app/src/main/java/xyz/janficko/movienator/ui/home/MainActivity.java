@@ -1,10 +1,8 @@
 package xyz.janficko.movienator.ui.home;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.graphics.Point;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -24,7 +22,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 import java.util.List;
 
@@ -100,14 +97,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             onNoInternet();
         } else {
             setRecyclerView();
+
             populateMovieList(mPageCounter);
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString(SORT_STATE, mSortMovie.toString());
         super.onSaveInstanceState(outState);
+
+        outState.putString(SORT_STATE, mSortMovie.toString());
     }
 
     private void setRecyclerView(){
@@ -153,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                     if (mMovieList == null) {
                         mMovieList = response.body().getMovie();
                         mTotalPages = response.body().getTotalPages();
-                        mMovieAdapter = new MovieAdapter(mMovieList, MainActivity.this);
+                        mMovieAdapter = new MovieAdapter(MainActivity.this, mMovieList, MainActivity.this);
                         mRecyclerViewMovies.setAdapter(mMovieAdapter);
                     } else {
                         mMovieList.addAll(response.body().getMovie());
@@ -347,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         mLoadingBar.setVisibility(View.INVISIBLE);
         hideNoInternetError();
         if(data.getCount() != 0 && mSortMovie == FAVOURITES){
-            mFavouriteAdapter = new FavouriteMovieAdapter(data, this);
+            mFavouriteAdapter = new FavouriteMovieAdapter(this, data, this);
             mRecyclerViewMovies.setAdapter(mFavouriteAdapter);
         } else if (data.getCount() == 0 && mSortMovie == FAVOURITES) {
             mNoMoviesError.setVisibility(View.VISIBLE);
@@ -362,7 +361,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     private void setLayoutManager(){
         mGridLayoutManager = new GridLayoutManager(this, 2);
-        if(mDpWidth > getResources().getInteger(R.integer.min_width)){
+        if(mDpWidth >= getResources().getInteger(R.integer.min_width)){
             mGridLayoutManager = new GridLayoutManager(this, 3);
             if(getScreenOrientation() == Configuration.ORIENTATION_LANDSCAPE){
                 mGridLayoutManager = new GridLayoutManager(this, 4);
