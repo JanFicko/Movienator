@@ -3,6 +3,7 @@ package xyz.janficko.movienator.ui.home;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -23,6 +24,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -50,6 +52,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String SORT_STATE = "SORT";
+    private static final String LAYOUT_STATE = "LAYOUT";
+    private static final String PAGE_STATE = "PAGE";
+    private static final String TOTAL_PAGE_STATE = "TOTAL_PAGE";
+    private static final String LIST_STATE = "LIST";
 
     private TheMovieDB mTmd = new TheMovieDB();
     private MoviesInterface mMoviesInterface = mTmd.movieInterface();
@@ -63,11 +69,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
     private ProgressBar mLoadingBar;
     private TextView mNoMoviesError;
     private LinearLayout mNoInternetError;
-    private List<Movie> mMovieList;
+    private ArrayList<Movie> mMovieList;
     private int mPageCounter = 1;
     private int mTotalPages = 0;
     private SortMovie mSortMovie = POPULAR;
     private float mDpWidth;
+    private Parcelable mListState;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +94,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
 
         if (savedInstanceState != null) {
             mSortMovie = SortMovie.valueOf(savedInstanceState.getString(SORT_STATE));
+            mListState = savedInstanceState.getParcelable(LAYOUT_STATE);
+            mPageCounter = savedInstanceState.getInt(PAGE_STATE);
+            mTotalPages = savedInstanceState.getInt(TOTAL_PAGE_STATE);
+            mMovieList = savedInstanceState.getParcelableArrayList(LIST_STATE);
         }
     }
 
@@ -97,8 +109,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
             onNoInternet();
         } else {
             setRecyclerView();
-
-            populateMovieList(mPageCounter);
+            if (mListState != null) {
+                mGridLayoutManager.onRestoreInstanceState(mListState);
+                mMovieAdapter = new MovieAdapter(MainActivity.this, mMovieList, MainActivity.this);
+                mRecyclerViewMovies.setAdapter(mMovieAdapter);
+                mListState = null;
+            } else {
+                populateMovieList(mPageCounter);
+            }
         }
     }
 
@@ -107,6 +125,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
         super.onSaveInstanceState(outState);
 
         outState.putString(SORT_STATE, mSortMovie.toString());
+
+        mListState = mGridLayoutManager.onSaveInstanceState();
+        outState.putParcelable(LAYOUT_STATE, mListState);
+
+        outState.putParcelableArrayList(LIST_STATE, mMovieList);
+
+        outState.putInt(PAGE_STATE, mPageCounter);
+        outState.putInt(TOTAL_PAGE_STATE, mTotalPages);
     }
 
     private void setRecyclerView(){
@@ -150,14 +176,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.List
                 @Override
                 public void onResponse(Call<MovieResult> call, Response<MovieResult> response) {
                     if (mMovieList == null) {
+                        Log.v(TAG, "IS NULL");
                         mMovieList = response.body().getMovie();
                         mTotalPages = response.body().getTotalPages();
                         mMovieAdapter = new MovieAdapter(MainActivity.this, mMovieList, MainActivity.this);
                         mRecyclerViewMovies.setAdapter(mMovieAdapter);
                     } else {
                         mMovieList.addAll(response.body().getMovie());
+                        mMovieAdapter.notifyDataSetChanged();
                     }
-                    mMovieAdapter.notifyDataSetChanged();
                     mPageCounter++;
 
                     mLoadingBar.setVisibility(View.INVISIBLE);

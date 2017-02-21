@@ -30,11 +30,11 @@
         android:visibility="gone">
 
         <TextView
-        android:textSize="@dimen/text_medium"
-        android:textColor="@color/black"
-        android:text="@string/error_message_no_internet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+            android:textSize="@dimen/text_medium"
+            android:textColor="@color/black"
+            android:text="@string/error_message_no_internet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
         <Button
             android:text="@string/action_retry"

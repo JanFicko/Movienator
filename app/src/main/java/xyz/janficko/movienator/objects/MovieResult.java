@@ -14,7 +14,7 @@ public class MovieResult {
     private Integer page;
     @SerializedName("results")
     @Expose
-    private List<Movie> movies = new ArrayList<Movie>();
+    private ArrayList<Movie> movies = new ArrayList<Movie>();
     @SerializedName("total_results")
     @Expose
     private Integer totalResults;
@@ -39,14 +39,14 @@ public class MovieResult {
     /**
      * @return The results
      */
-    public List<Movie> getMovie() {
+    public ArrayList<Movie> getMovie() {
         return movies;
     }
 
     /**
      * @param movies The results
      */
-    public void setMovie(List<Movie> movies) {
+    public void setMovie(ArrayList<Movie> movies) {
         this.movies = movies;
     }
 
